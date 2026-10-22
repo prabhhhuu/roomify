@@ -1,0 +1,19 @@
+import type { Route } from "./+types/home";
+import Navbar from "../../components/ui/Navbar";
+
+
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "New React Router App" },
+    { name: "description", content: "Welcome to React Router!" },
+  ];
+}
+
+export default function Home() {
+  return (
+      <div className="home">
+          <Navbar />
+        <h1 className={"text-indigo-700 text-3xl font-extrabold"}>Home</h1>
+      </div>
+  );
+}
