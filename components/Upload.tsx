@@ -1,7 +1,7 @@
 import React, {useState, useCallback} from 'react';
 import {useOutletContext} from "react-router";
 import {CheckCircle2, ImageIcon, UploadIcon} from "lucide-react";
-import {PROGRESS_STEP, PROGRESS_INTERVAL_MS, REDIRECT_DELAY_MS} from "./lib/constants";
+import {PROGRESS_STEP, PROGRESS_INTERVAL_MS, REDIRECT_DELAY_MS, MAX_FILE_SIZE, ALLOWED_TYPES} from "./lib/constants";
 
 interface UploadProps {
     onComplete?: (base64Data: string) => void;
@@ -12,35 +12,56 @@ const Upload: React.FC<UploadProps> = ({ onComplete }) => {
     const [file, setFile] = useState<File | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [error, setError] = useState<string | null>(null);
 
     const { isSignedIn } = useOutletContext<AuthContext>();
 
     const processFile = useCallback((file: File) => {
         if (!isSignedIn) return;
-        
+
+        // Clear any previous error before validating
+        setError(null);
+
+        // Validate file type
+        if (!ALLOWED_TYPES.includes(file.type as typeof ALLOWED_TYPES[number])) {
+            setError("Unsupported file format. Please upload a JPG or PNG image.");
+            return;
+        }
+
+        // Validate file size (10 MB limit)
+        if (file.size > MAX_FILE_SIZE) {
+            setError("File is too large. Maximum size is 10 MB.");
+            return;
+        }
+
         setFile(file);
         setProgress(0);
         
         const reader = new FileReader();
         reader.onload = () => {
             const base64Data = reader.result as string;
-            
+
             const interval = setInterval(() => {
                 setProgress(prev => {
                     const newProgress = prev + PROGRESS_STEP;
                     if (newProgress >= 100) {
                         clearInterval(interval);
                         setProgress(100);
-                        
+
                         setTimeout(() => {
                             onComplete?.(base64Data);
                         }, REDIRECT_DELAY_MS);
-                        
+
                         return 100;
                     }
                     return newProgress;
                 });
             }, PROGRESS_INTERVAL_MS);
+        };
+        reader.onerror = () => {
+            setFile(null);
+            setProgress(0);
+            setError("Failed to read file. Please try again.");
         };
         reader.readAsDataURL(file);
     }, [isSignedIn, onComplete]);
@@ -86,10 +107,19 @@ const Upload: React.FC<UploadProps> = ({ onComplete }) => {
         }
     };
 
+    const handleErrorDismiss = () => {
+        setError(null);
+    };
+
   return (
     <div className={"upload"}>
-        {!file ? (
-            <div 
+        {error ? (
+            <div className={"error-message"}>
+                <p>{error}</p>
+                <button onClick={handleErrorDismiss}>Try again</button>
+            </div>
+        ) : !file ? (
+            <div
                 className={`dropzone ${isDragging ? 'is-dragging' : ''}`}
                 onDragEnter={handleDragEnter}
                 onDragLeave={handleDragLeave}
@@ -111,7 +141,7 @@ const Upload: React.FC<UploadProps> = ({ onComplete }) => {
                 <p>
                     {isSignedIn ? ("Click to upload or just drag and drop") : ("Sign in or Sign up with puter to upload")}
                 </p>
-                <p className={"help"}>Maximum file size upto 50 MB.</p>
+                <p className={"help"}>Maximum file size up to 10 MB.</p>
             </div>
         ) : (
             <div className={"upload-status"}>
