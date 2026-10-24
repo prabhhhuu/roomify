@@ -1,7 +1,9 @@
 import type { Route } from "./+types/home";
-import Navbar from "../../components/ui/Navbar";
+import Navbar from "../../components/Navbar";
 import {ArrowRight, ArrowUpRight, Clock, Layers} from "lucide-react";
 import {Button} from "../../components/ui/button";
+import Upload from "../../components/Upload";
+import {useNavigate} from "react-router";
 
 
 export function meta({}: Route.MetaArgs) {
@@ -12,6 +14,14 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
+    const navigate = useNavigate();
+
+    const handleUploadComplete = async (base64Data: string) => {
+        const newId = Date.now().toString();
+        navigate(`/visualizer/${newId}`)
+        return true;
+    }
+
   return (
       <div className="home">
           <Navbar />
@@ -41,11 +51,14 @@ export default function Home() {
                 <div className={"upload-card"}>
                     <div className={"upload-head"}>
                         <div className={"upload-icon"}>
-                            <Layers className={"icon"} />
+                            <Layers className={"icon"}/>
                         </div>
+
                         <h3>Upload your floor Plan</h3>
-                        <p>Supports JPG, PNG formats upto 10MB</p>
+                        <p>Supports JPG, PNG formats up to 10MB</p>
                     </div>
+
+                        <Upload onComplete={handleUploadComplete} />
                 </div>
             </div>
         </section>
@@ -74,7 +87,7 @@ export default function Home() {
                                   <h3>Project Phaselift</h3>
 
                                   <div className={"meta"}>
-                                      <Clock sixe={12}/>
+                                      <Clock size={12}/>
                                       <span>{new Date('01.10.2027').toLocaleString()}</span>
                                       <span>Edward Kernel</span>
                                   </div>

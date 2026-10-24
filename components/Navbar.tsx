@@ -1,5 +1,5 @@
 import {Box} from "lucide-react";
-import {Button} from "./button";
+import {Button} from "./ui/button";
 import {useOutletContext} from "react-router";
 
 
