@@ -24,7 +24,7 @@ export default function Home() {
         const name =`Residence ${newId}`;
 
         const newItem = {
-            id: newId, sourceImage:base64Data,
+            id: newId, name, sourceImage:base64Data,
             renderedImage: undefined,
             timestamp: Date.now()
 
@@ -35,7 +35,7 @@ export default function Home() {
             console.log("Failed to create project");
             return false;
         }
-        setProject((prev) => [newItem, ...prev])
+        setProject((prev) => [saved, ...prev])
 
         navigate(`/visualizer/${newId}`,{
             state: {
